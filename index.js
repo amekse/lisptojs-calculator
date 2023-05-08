@@ -4,23 +4,23 @@
 
 import { readFile } from 'fs';
 import { logError } from './src/utils/logger.js';
-import { convertLispToLists } from './src/lisp-to-list.js';
+import { initLA } from './src/lexical-analysis.js';
 import featureSwitch from './feature-switch.json' assert { type: "json" };
 
-function readLocalCodeFile() {
+const readLocalCodeFile = () => {
     readFile('./test-code.lsp', 'utf8', (err, data) => {
         if (err) {
             logError("file read failed", err);
             return;
         }
-        convertLispToLists(data);
+        initLA(data);
     });
-}
+};
 
-function readExternalInput(codePiece = "") {}
+const readExternalInput = (codePiece = "") => {};
 
 (featureSwitch['inp-sys'] === "cmd" && featureSwitch['version-level'] >= 1) ?
     readLocalCodeFile() :
-    (featureSwitch['inp-sys'] === "web" && featureSwitch['version-level'] >= 2) ?
+    (featureSwitch['inp-sys'] === "web" && featureSwitch['version-level'] >= 3) ?
     readExternalInput() :
     logError("feature switch mismatch", "set FS to cmd or web");
