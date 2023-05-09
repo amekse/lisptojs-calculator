@@ -2,7 +2,9 @@
     Converting lisp file to list of commands
 */
 
-import { logError, logOutput } from './utils/logger.js';
+import { logDebug, logError } from './utils/logger.js';
+import { createAST } from './syntax-analysis.js';
+import { regexStringOccuranceCount } from './utils/micro-utils.js';
 
 const convertCharSetToOperator = (lispCharSet, startCount, endCount) => {
     let lastOut = [endCount, lispCharSet.slice(startCount, endCount).toString().replaceAll(",","")];
@@ -13,10 +15,10 @@ const convertCharSetToOperator = (lispCharSet, startCount, endCount) => {
 }
 
 const convertScopesToLists = (lispCharSet, charCount, listByScopes, parenthesisLevel) => {
-    let lastOut = [listByScopes];
+    let lastOut = listByScopes;
     if (charCount < lispCharSet.length) {
         if (lispCharSet[charCount] === "(") {
-            listByScopes.push([++parenthesisLevel]);
+            listByScopes.push(++parenthesisLevel);
             lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, parenthesisLevel);
         } else if (lispCharSet[charCount] !== "(" && lispCharSet[charCount] !== ")" && lispCharSet[charCount] !== " ") {
             const operatorValueStringSet = convertCharSetToOperator(lispCharSet, charCount, ++charCount);
@@ -31,9 +33,10 @@ const convertScopesToLists = (lispCharSet, charCount, listByScopes, parenthesisL
     return lastOut;
 }
 
-const convertLineBreaksToSpaces = (lispLines) => convertScopesToLists(lispLines.replaceAll("\n", " ").split(""), 0, [], -1);
+const enclosingParanthesisCheck = (lispLines) => regexStringOccuranceCount(lispLines, /\(/gi) === regexStringOccuranceCount(lispLines, /\)/gi);
 
-export const initLA = (lispLines) => {
-    logOutput("", lispLines.replaceAll("\n", " "));
-    logOutput(convertLineBreaksToSpaces(lispLines));
-};
+const convertLineBreaksToSpaces = (lispLines) => enclosingParanthesisCheck(lispLines) ?
+    convertScopesToLists(lispLines.replaceAll("\n", " ").split(""), 0, [], -1) :
+    logError("Scope Error", "Incomplete parenthesis in code");
+
+export const initLA = (lispLines) => logDebug(createAST(convertLineBreaksToSpaces(lispLines)));
