@@ -3,7 +3,7 @@
 */
 
 import { logDebug, logError } from './utils/logger.js';
-import { createAST } from './syntax-analysis.js';
+import { initSA } from './syntax-analysis.js';
 import { regexStringOccuranceCount } from './utils/micro-utils.js';
 
 const convertCharSetToOperator = (lispCharSet, startCount, endCount) => {
@@ -18,13 +18,14 @@ const convertScopesToLists = (lispCharSet, charCount, listByScopes, parenthesisL
     let lastOut = listByScopes;
     if (charCount < lispCharSet.length) {
         if (lispCharSet[charCount] === "(") {
-            listByScopes.push(++parenthesisLevel);
-            lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, parenthesisLevel);
+            listByScopes.push("[");
+            lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, ++parenthesisLevel);
         } else if (lispCharSet[charCount] !== "(" && lispCharSet[charCount] !== ")" && lispCharSet[charCount] !== " ") {
             const operatorValueStringSet = convertCharSetToOperator(lispCharSet, charCount, ++charCount);
-            listByScopes.push(operatorValueStringSet[1]);
+            listByScopes.push(`"${operatorValueStringSet[1]}";`);
             lastOut = convertScopesToLists(lispCharSet, operatorValueStringSet[0], listByScopes, parenthesisLevel);
         } else if (lispCharSet[charCount] === ")") {
+            listByScopes.push("]");
             lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, --parenthesisLevel);
         } else {
             lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, parenthesisLevel);
@@ -39,4 +40,6 @@ const convertLineBreaksToSpaces = (lispLines) => enclosingParanthesisCheck(lispL
     convertScopesToLists(lispLines.replaceAll("\n", " ").split(""), 0, [], -1) :
     logError("Scope Error", "Incomplete parenthesis in code");
 
-export const initLA = (lispLines) => logDebug(createAST(convertLineBreaksToSpaces(lispLines)));
+const lispToListEval = (lispList) => eval(`[${lispList.join().replaceAll(",", " ").replaceAll("] [", "],[").replaceAll(";", ",")}]`);
+
+export const initLA = (lispLines) => logDebug(JSON.stringify(lispToListEval(initSA(convertLineBreaksToSpaces(lispLines)))));
