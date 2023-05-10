@@ -9,13 +9,16 @@ const inKeywordsLChecklist = (keyword) => ["defun", "write", "terpri"].includes(
 const checkLDefun = (funcName, functionsLList) => (typeof funcName !== "string" || !isNaN(funcName) || inKeywordsLChecklist(funcName) || functionsLList.includes(funcName)) ?
     {action: "defun", value: true, error: `${funcName} cannot be a function name`} : {action: "defun", value: funcName, error: false};
 
+
+// FIXME: not working
 const checkLSolvableOperation = (operation, index, funcLList) => {
+    let lastCheck = true;
     const operatorLList = ["+", "-", "*", "/", "mod"];
     if (index >= 0) {
-        if ((index === 0 && operatorLList.includes(operation[index]) || funcLList.concat["read"].includes(operation[index])) || (index !== 0 && !operatorLList.includes(operation[index]))) // TODO: complete check all possible conditions
-            checkLSolvableOperation(operation, --index);
+        if ((index === 0 && operatorLList.includes(operation[index]) || funcLList.concat(["read"]).includes(operation[index])) || (index !== 0 && !operatorLList.includes(operation[index]))) // TODO: complete check all possible conditions
+            lastCheck = checkLSolvableOperation(operation, --index, funcLList);
         else
-            return false;
+            lastCheck = false;
     }
     return true;
 }
@@ -47,7 +50,7 @@ const checkSyntaxStructure = (commandList, index, functionsLList) => {
         }
         if (checkRes.value) {
             switch (checkRes.action) {
-                case "defun" : lastFuncLList.push(Symbol(checkRes.value)); break;
+                case "defun" : lastFuncLList.push(checkRes.value); break;
                 default : null;
             }
         }
