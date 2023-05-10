@@ -37,6 +37,9 @@ const checkLFunctionCall = (callDetails, funcLList) => {
     return {action: "function", value: null, error: null}
 }
 
+// TODO: type mismatch
+// TODO: recursion check
+
 const checkSyntaxStructure = (commandList, index, functionsLList) => {
     let lastFuncLList = functionsLList;
     if (index < commandList.length) {

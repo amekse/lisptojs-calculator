@@ -22,7 +22,7 @@ const convertScopesToLists = (lispCharSet, charCount, listByScopes, parenthesisL
             lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, ++parenthesisLevel);
         } else if (lispCharSet[charCount] !== "(" && lispCharSet[charCount] !== ")" && lispCharSet[charCount] !== " ") {
             const operatorValueStringSet = convertCharSetToOperator(lispCharSet, charCount, charCount+1);
-            listByScopes.push(`"${operatorValueStringSet[1]}";`);
+            listByScopes.push(`"${operatorValueStringSet[1]}";`); // TODO: numeric conversion
             lastOut = convertScopesToLists(lispCharSet, operatorValueStringSet[0], listByScopes, parenthesisLevel);
         } else if (lispCharSet[charCount] === ")") {
             listByScopes.push("]");
