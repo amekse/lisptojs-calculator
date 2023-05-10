@@ -42,4 +42,4 @@ const convertLineBreaksToSpaces = (lispLines) => enclosingParanthesisCheck(lispL
 
 const lispToListEval = (lispList) => eval(`[${lispList.join().replaceAll(",", " ").replaceAll("] [", "],[").replaceAll(";", ",")}]`);
 
-export const initLA = (lispLines) => logDebug(JSON.stringify(lispToListEval(initSA(convertLineBreaksToSpaces(lispLines)))));
+export const initLA = (lispLines) => logDebug("LA output", JSON.stringify(initSA(lispToListEval(convertLineBreaksToSpaces(lispLines)))));
