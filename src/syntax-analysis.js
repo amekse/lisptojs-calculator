@@ -9,8 +9,6 @@ const inKeywordsLChecklist = (keyword) => ["defun", "write", "terpri"].includes(
 const checkLDefun = (funcName, functionsLList) => (typeof funcName !== "string" || !isNaN(funcName) || inKeywordsLChecklist(funcName) || functionsLList.includes(funcName)) ?
     {action: "defun", value: true, error: `${funcName} cannot be a function name`} : {action: "defun", value: funcName, error: false};
 
-
-// FIXME: not working
 const checkLSolvableOperation = (operation, index, funcLList) => {
     let lastCheck = true;
     const operatorLList = ["+", "-", "*", "/", "mod"];
