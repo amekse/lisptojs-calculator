@@ -1,5 +1,5 @@
 /*
-    Converting lisp file to list of commands
+    Developing command tree
 */
 
 import { logDebug, logError } from './utils/logger.js';

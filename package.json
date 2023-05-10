@@ -17,5 +17,8 @@
   "bugs": {
     "url": "https://github.com/sswtds/kiesta/issues"
   },
-  "homepage": "https://github.com/sswtds/kiesta#readme"
+  "homepage": "https://github.com/sswtds/kiesta#readme",
+  "devDependencies": {
+    "eslint": "^8.40.0"
+  }
 }

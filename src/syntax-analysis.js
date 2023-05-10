@@ -1,8 +1,8 @@
 /*
-    Developing the command execution tree
+    Validating execution tree
 */
 
-import { logDebug, logError, logOutput } from './utils/logger.js';
+import { logDebug, logError } from './utils/logger.js';
 
 const inKeywordsLChecklist = (keyword) => ["defun", "write", "terpri"].includes(keyword);
 
