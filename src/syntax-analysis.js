@@ -42,6 +42,8 @@ const checkSyntaxStructure = (commandList, index, functionsLList) => {
                 checkRes = checkLDefun(commandList[index+1], lastFuncLList);
             if (commandList[index] === "write")
                 checkRes = checkLWrite(commandList[index+1], lastFuncLList);
+            if (commandList[index] === "terpri" && commandList[index+1])
+                checkRes = {action: "terpri", value: null, error: `terpri ${commandList[index+1]} is not possible`}
         }
         if (checkRes.error) {
             logError("Syntax Error", checkRes.error);
