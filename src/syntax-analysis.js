@@ -12,8 +12,9 @@ const checkSyntaxStructure = (commandList, index, keyVal) => {
         }
         checkSyntaxStructure(commandList, index-1);
         if (keyVal.checklistKeywords.includes(commandList[index])) {
-            if (keyVal.validateLKeyword(commandList[index], index).error) {
-                logError("Syntax Error", `Check ${commandList[index]} in code`);
+            const valReport = keyVal.validateLKeyword(commandList[index], index);
+            if (valReport.error) {
+                logError("Syntax Error", valReport.error);
             }
         }
     }

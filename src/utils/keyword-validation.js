@@ -4,6 +4,7 @@ export default class KeywordValidation {
     }
 
     checklistLKeywords = ["defun", "write", "terpri"];
+    checklistLFunctions = [];
 
     validateLKeyword = (keyword, index) => {
         switch (keyword) {
@@ -19,6 +20,7 @@ export default class KeywordValidation {
 
     #checkLTerpri = (index) => {};
 
-    #checkLDefun = (index) => {};
+    #checkLDefun = (index) => (typeof this.commandList[index+1] === "string" && !this.checklistLKeywords.includes(this.commandList[index])) ?
+            {value: this.commandList[index], error: null} : {value: this.commandList[index], error: `${this.commandList[index+1]} cannot be a function name`};
 
 }
