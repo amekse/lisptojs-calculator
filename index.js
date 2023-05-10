@@ -4,7 +4,7 @@
 
 import { readFile } from 'fs';
 import { logError } from './src/utils/logger.js';
-import { initLA } from './src/lexical-analysis.js';
+import { initLA } from './src/lexical-conversion.js';
 import featureSwitch from './feature-switch.json' assert { type: "json" };
 
 const readLocalCodeFile = () => {
