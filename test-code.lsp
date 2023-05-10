@@ -1,7 +1,7 @@
 (defun ops(a b)
 (write(+ a b))
 (terpri)
-(write(a b))
+(write(+ a b))
 (terpri)
 (write(* a b))
 (terpri)

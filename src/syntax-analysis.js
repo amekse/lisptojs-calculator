@@ -20,7 +20,7 @@ const checkLSolvableOperation = (operation, index, funcLList) => {
         else
             lastCheck = false;
     }
-    return true;
+    return lastCheck;
 }
 
 const checkLWrite = (wOutput, funcLList) => {
@@ -35,15 +35,15 @@ const checkLWrite = (wOutput, funcLList) => {
 
 const checkSyntaxStructure = (commandList, index, functionsLList) => {
     let lastFuncLList = functionsLList;
-    if (index >= 0) {
+    if (index < commandList.length) {
         let checkRes = {action: null, value: null, error: null};
         if (typeof commandList[index] === "object") {
-            checkSyntaxStructure(commandList[index], commandList[index].length-1, lastFuncLList);
+            checkSyntaxStructure(commandList[index], 0, lastFuncLList);
         } else {
             if (commandList[index] === "defun")
-                checkRes = checkLDefun(commandList[index+1], functionsLList);
+                checkRes = checkLDefun(commandList[index+1], lastFuncLList);
             if (commandList[index] === "write")
-                checkRes = checkLWrite(commandList[index+1], functionsLList);
+                checkRes = checkLWrite(commandList[index+1], lastFuncLList);
         }
         if (checkRes.error) {
             logError("Syntax Error", checkRes.error);
@@ -54,12 +54,12 @@ const checkSyntaxStructure = (commandList, index, functionsLList) => {
                 default : null;
             }
         }
-        checkSyntaxStructure(commandList, --index, lastFuncLList);
+        checkSyntaxStructure(commandList, ++index, lastFuncLList);
     }
     return lastFuncLList;
 }
 
 export const initSA = (commandList) => {
-    logDebug("SA output", checkSyntaxStructure(commandList, commandList.length-1, []));
+    logDebug("SA output", checkSyntaxStructure(commandList, 0, []));
     return commandList;
 }
