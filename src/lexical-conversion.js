@@ -21,8 +21,8 @@ const convertScopesToLists = (lispCharSet, charCount, listByScopes, parenthesisL
             listByScopes.push("[");
             lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, ++parenthesisLevel);
         } else if (lispCharSet[charCount] !== "(" && lispCharSet[charCount] !== ")" && lispCharSet[charCount] !== " ") {
-            const operatorValueStringSet = convertCharSetToOperator(lispCharSet, charCount, ++charCount);
-            listByScopes.push(`"${operatorValueStringSet[1]}";`); // TODO: check if numeric
+            const operatorValueStringSet = convertCharSetToOperator(lispCharSet, charCount, charCount+1);
+            listByScopes.push(`"${operatorValueStringSet[1]}";`);
             lastOut = convertScopesToLists(lispCharSet, operatorValueStringSet[0], listByScopes, parenthesisLevel);
         } else if (lispCharSet[charCount] === ")") {
             listByScopes.push("]");
@@ -40,6 +40,6 @@ const convertLineBreaksToSpaces = (lispLines) => enclosingParanthesisCheck(lispL
     convertScopesToLists(lispLines.replaceAll("\n", " ").split(""), 0, [], -1) :
     logError("Scope Error", "Incomplete parenthesis in code");
 
-const lispToListEval = (lispList) => eval(`[${lispList.join().replaceAll(",", " ").replaceAll("] [", "],[").replaceAll(";", ",")}]`);
+const lispToListEval = (lispList) => eval(`[${lispList.join().replaceAll(",", " ").replaceAll("] [", "],[").replaceAll('] "', ']; "').replaceAll(";", ",")}]`);
 
 export const initLA = (lispLines) => logDebug("LA output", JSON.stringify(initSA(lispToListEval(convertLineBreaksToSpaces(lispLines)))));

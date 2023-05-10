@@ -44,17 +44,18 @@ const checkSyntaxStructure = (commandList, index, functionsLList) => {
         if (typeof commandList[index] === "object") {
             lastFuncLList = checkSyntaxStructure(commandList[index], 0, lastFuncLList);
         } else {
-            if (commandList[index] === "defun")
+            if (index === 0 && !functionsLList.includes(commandList) && !functionsLList.concat(["defun", "terpri", "write", "read", "+", "-", "*", "/", "mod"]).includes(commandList[index]))
+                checkRes = {action: "function", value: false, error: `${commandList} invalid operation start`}
+            else if (commandList[index] === "defun")
                 checkRes = checkLDefun(commandList[index+1], commandList[index+2], lastFuncLList);
-            if (commandList[index] === "write")
+            else if (commandList[index] === "write")
                 checkRes = checkLWrite(commandList[index+1], lastFuncLList);
-            if (commandList[index] === "terpri" && commandList[index+1])
+            else if (commandList[index] === "terpri" && commandList[index+1])
                 checkRes = {action: "terpri", value: null, error: `terpri ${commandList[index+1]} is not possible`};
-            if (functionsLList.includes(commandList[index]) && commandList[index-1] !== "defun")
+            else if (functionsLList.includes(commandList[index]) && commandList[index-1] !== "defun")
                 !commandList[index -1] ?
                     checkRes = checkLFunctionCall(commandList, lastFuncLList) :
                     checkRes = {action: "function", value: false, error: `${commandList[index-1]} ${commandList[index]} is not possible`}
-            // TODO: check index 0 if empty
         }
         if (checkRes.error) {
             logError("Syntax Error", checkRes.error);
