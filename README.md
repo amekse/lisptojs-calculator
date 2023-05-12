@@ -1,8 +1,7 @@
 # kiesta
 LISP compiler on JS
 
-# kiesta 
-LISP compiler on JS
-
 ### [v1.0.1]
-- WAP calculator in LISP
+- Read code file as string
+- Convert LISP string to JS compatible array
+- Validate LISP functions and keywords processing
