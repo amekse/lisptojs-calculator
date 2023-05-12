@@ -8,7 +8,7 @@ import { initLA } from './src/lexical-conversion.js';
 import featureSwitch from './feature-switch.json' assert { type: "json" };
 
 const readLocalCodeFile = () => {
-    readFile('./test-code.lsp', 'utf8', (err, data) => {
+    readFile('./test-code-v1.lsp', 'utf8', (err, data) => {
         if (err) {
             logError("file read failed", err);
             return;
