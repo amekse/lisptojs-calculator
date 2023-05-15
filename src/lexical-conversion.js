@@ -5,19 +5,23 @@
 import { logDebug } from './utils/logger.js';
 
 class NodeDef {
-    constructor (id, value) {
+    constructor (id, listStartIndex) {
         this.id = id;
-        this.value = value;
+        this.listStartIndex = listStartIndex;
+        this.listEndIndex = -1;
         this.children = [];
     }
 
     getNodeDetails = () => ({
         id: this.id,
-        value: this.value,
+        listStartIndex: this.listStartIndex,
+        listEndIndex: this.listEndIndex,
         children: this.children
     });
 
-    addChild = (childNode) => this.children.push(childNode);
+    addChild = (childId) => this.children.push(childId);
+
+    setListEndIndex = (end) => this.listEndIndex = end;
 }
 
 const isWhitespace = (char) => {
@@ -39,19 +43,32 @@ const isWhitespace = (char) => {
         || char === '\ufeff'
 }
 
-const convertLispStringToCharList = (lispLines, index, charList, parentMap) => {
+
+
+const convertLispStringToCharList = (lispLines, index, charList, parenthesisScopeMap, parenthesisScopeCount, spaceCount) => {
     if(index < lispLines.length) {
         if (!isWhitespace(lispLines[index]) && lispLines[index] !== null) {
-            if (lispLines[index] === "(")
-                parentMap.push(index);
+            if (lispLines[index] === "(") {
+                const nodeId = `${index-spaceCount}${Date.now()}`;
+                parenthesisScopeMap.push(new NodeDef(nodeId, index - spaceCount));
+                if (parenthesisScopeMap[parenthesisScopeCount])
+                    parenthesisScopeMap[parenthesisScopeCount].addChild(nodeId);
+                ++parenthesisScopeCount;
+            }
+            if (lispLines[index] === ")") {
+                --parenthesisScopeCount;
+                parenthesisScopeMap[parenthesisScopeCount].setListEndIndex(index - spaceCount);
+            }
             charList.push(lispLines[index]);
+        } else {
+            ++spaceCount;
         }
-        return convertLispStringToCharList(lispLines, ++index, charList, parentMap);
+        return convertLispStringToCharList(lispLines, index+1, charList, parenthesisScopeMap, parenthesisScopeCount, spaceCount);
     }
     return {
         lisp: charList,
-        parent: parentMap
+        parenthesisScopeMap: parenthesisScopeMap
     };
 };
 
-export const initLA = (lispLines) => logDebug("LA output", JSON.stringify(convertLispStringToCharList(lispLines, 0, [], [])));
+export const initLA = (lispLines) => logDebug("LA output", JSON.stringify(convertLispStringToCharList(lispLines, 0, [], [], 0, 0)));
