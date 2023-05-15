@@ -2,44 +2,56 @@
     Developing command tree
 */
 
-import { logDebug, logError } from './utils/logger.js';
-import { initSA } from './syntax-analysis.js';
-import { regexStringOccuranceCount } from './utils/micro-utils.js';
+import { logDebug } from './utils/logger.js';
 
-const convertCharSetToOperator = (lispCharSet, startCount, endCount) => {
-    let lastOut = [endCount, lispCharSet.slice(startCount, endCount).toString().replaceAll(",","")];
-    if (lispCharSet[endCount] !== "(" && lispCharSet[endCount] !== ")" && lispCharSet[endCount] !== " " && endCount < lispCharSet.length) {
-        lastOut = convertCharSetToOperator(lispCharSet, startCount, ++endCount);
+class NodeDef {
+    constructor (id, value) {
+        this.id = id;
+        this.value = value;
+        this.children = [];
     }
-    return lastOut;
+
+    getNodeDetails = () => ({
+        id: this.id,
+        value: this.value,
+        children: this.children
+    });
+
+    addChild = (childNode) => this.children.push(childNode);
 }
 
-const convertScopesToLists = (lispCharSet, charCount, listByScopes, parenthesisLevel) => {
-    let lastOut = listByScopes;
-    if (charCount < lispCharSet.length) {
-        if (lispCharSet[charCount] === "(") {
-            listByScopes.push("[");
-            lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, ++parenthesisLevel);
-        } else if (lispCharSet[charCount] !== "(" && lispCharSet[charCount] !== ")" && lispCharSet[charCount] !== " ") {
-            const operatorValueStringSet = convertCharSetToOperator(lispCharSet, charCount, charCount+1);
-            isNaN(operatorValueStringSet[1]) ? listByScopes.push(`"${operatorValueStringSet[1]}";`) : listByScopes.push(`${operatorValueStringSet[1]};`); 
-            lastOut = convertScopesToLists(lispCharSet, operatorValueStringSet[0], listByScopes, parenthesisLevel);
-        } else if (lispCharSet[charCount] === ")") {
-            listByScopes.push("]");
-            lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, --parenthesisLevel);
-        } else {
-            lastOut = convertScopesToLists(lispCharSet, ++charCount, listByScopes, parenthesisLevel);
+const isWhitespace = (char) => {
+    return char === ' '
+        || char === '\n'
+        || char === '\t'
+        || char === '\r'
+        || char === '\f'
+        || char === '\v'
+        || char === '\u00a0'
+        || char === '\u1680'
+        || char === '\u2000'
+        || char === '\u200a'
+        || char === '\u2028'
+        || char === '\u2029'
+        || char === '\u202f'
+        || char === '\u205f'
+        || char === '\u3000'
+        || char === '\ufeff'
+}
+
+const convertLispStringToCharList = (lispLines, index, charList, parentMap) => {
+    if(index < lispLines.length) {
+        if (!isWhitespace(lispLines[index]) && lispLines[index] !== null) {
+            if (lispLines[index] === "(")
+                parentMap.push(index);
+            charList.push(lispLines[index]);
         }
+        return convertLispStringToCharList(lispLines, ++index, charList, parentMap);
     }
-    return lastOut;
-}
+    return {
+        lisp: charList,
+        parent: parentMap
+    };
+};
 
-const enclosingParanthesisCheck = (lispLines) => regexStringOccuranceCount(lispLines, /\(/gi) === regexStringOccuranceCount(lispLines, /\)/gi);
-
-const convertLineBreaksToSpaces = (lispLines) => enclosingParanthesisCheck(lispLines) ?
-    convertScopesToLists(lispLines.replaceAll("\n", " ").split(""), 0, [], -1) :
-    logError("Scope Error", "Incomplete parenthesis in code");
-
-const lispToListEval = (lispList) => eval(`[${lispList.join().replaceAll(",", " ").replaceAll("] [", "],[").replaceAll('] "', ']; "').replaceAll(";", ",")}]`);
-
-export const initLA = (lispLines) => logDebug("LA output", JSON.stringify(initSA(lispToListEval(convertLineBreaksToSpaces(lispLines)))));
+export const initLA = (lispLines) => logDebug("LA output", JSON.stringify(convertLispStringToCharList(lispLines, 0, [], [])));
