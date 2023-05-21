@@ -2,6 +2,7 @@
     Validating execution tree
 */
 
+import { initST } from './solve-tree.js';
 import { logDebug, logError, logOutput } from './utils/logger.js';
 
 const checkExpression = (expression, index, checkRes = true) => {
@@ -38,7 +39,14 @@ const checkScopeCompleteness = (lispLines, index, scopeCount = 0) => {
     return scopeCount === 0 ? true : false;
 }
 
-export const initSAOperationCheck = (abstractTree) => logDebug("**SA Output**", checkOperatorOperandConfiguration(abstractTree, 0));
+export const initSAOperationCheck = (abstractTree) =>  {
+    if (checkOperatorOperandConfiguration(abstractTree, 0)) {
+        logDebug("**SA Output**", true);
+        initST(abstractTree);
+    } else {
+        logDebug("**SA Output**", false);
+    }
+}
 
 export const initSAScopeCheck = (lispLines) => {
     const scopeRes = checkScopeCompleteness(lispLines, 0);

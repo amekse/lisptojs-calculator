@@ -12,6 +12,7 @@ class NodeDef {
         this.listEndIndex = -1;
         this.children = [];
         this.expression = [];
+        this.output = '';
     }
 
     getNodeDetails = () => ({
@@ -26,6 +27,8 @@ class NodeDef {
     updateExpression = (expression) => this.expression = expression;
 
     setListEndIndex = (end) => this.listEndIndex = end;
+
+    putOutput = (output) => this.output = output;
 }
 
 const isOperand = (char, charCount = 0, check = true) => {
