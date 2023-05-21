@@ -27,9 +27,12 @@ class NodeDef {
     setListEndIndex = (end) => this.listEndIndex = end;
 }
 
-const isOperand = (char, charCount = 0, check = false) => {
+const isOperand = (char, charCount = 0, check = true) => {
     if (charCount < char.length) {
-        if (["0", "1", "2", "3", "4", "5", "6", "7", ])
+        if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "-"].includes(char[charCount]))
+            check = check && true;
+        else
+            check = check && false;
         isOperand(char, ++charCount, check);
     }
     return check;
@@ -118,18 +121,27 @@ const clearSourceMapJunks = (scopeMap, index) => {
     return scopeMap;
 }
 
-const createListCharacters = (lispLines, index) => {
-    
+const detectOperands = (lispLines, index, lispChars) => {
+    if (index < lispLines.length) {
+        if (index-1 > 0 && isOperand(lispLines[index]) && isOperand(lispChars[lispChars.length-1])) {
+            lispChars[lispChars.length-1] = lispChars[lispChars.length-1]+lispLines[index];
+        } else {
+            lispChars.push(lispLines[index]);
+        }
+        return detectOperands(lispLines, ++index, lispChars);
+    }
+    return lispChars;
 }
 
 export const initLA = (lispLines) => {
+    logOutput(lispLines)
     clearSourceMapJunks(
         convertLispToScopeMap(
-            createListCharacters(lispLines),
+            detectOperands(lispLines, 0, []),
             0, [], [], [], 0
         ).parenthesisScopeMap,
         0
         ).map(i=>{
         logDebug(JSON.stringify(i))
-    })
+    });
 }
