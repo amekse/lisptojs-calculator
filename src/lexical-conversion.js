@@ -27,6 +27,14 @@ class NodeDef {
     setListEndIndex = (end) => this.listEndIndex = end;
 }
 
+const isOperand = (char, charCount = 0, check = false) => {
+    if (charCount < char.length) {
+        if (["0", "1", "2", "3", "4", "5", "6", "7", ])
+        isOperand(char, ++charCount, check);
+    }
+    return check;
+}
+
 const isWhitespace = (char) => {
     return char === ' '
         || char === '\n'
@@ -46,13 +54,13 @@ const isWhitespace = (char) => {
         || char === '\ufeff'
 }
 
-const convertLispToScopeMap = (lispLines, index, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount) => {
-    if(index < lispLines.length) {
-        if (!isWhitespace(lispLines[index]) && lispLines[index] !== null) {
-            if (lispLines[index] === "(") {
+const convertLispToScopeMap = (lispChars, index, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount) => {
+    if(index < lispChars.length) {
+        if (!isWhitespace(lispChars[index]) && lispChars[index] !== null) {
+            if (lispChars[index] === "(") {
                 parenthesisScopeMapTemp.push(new NodeDef(index-spaceCount, index - spaceCount));
             }
-            if (lispLines[index] === ")") {
+            if (lispChars[index] === ")") {
                 parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].setListEndIndex(index - spaceCount);
                 parenthesisScopeMap.push(parenthesisScopeMapTemp.pop());
                 
@@ -66,17 +74,17 @@ const convertLispToScopeMap = (lispLines, index, charList, parenthesisScopeMapTe
                 charList.splice(
                     parenthesisScopeMap[parenthesisScopeMap.length-1].listStartIndex+1,
                     parenthesisScopeMap[parenthesisScopeMap.length-1].expression.length,
-                    ...Array(parenthesisScopeMap[parenthesisScopeMap.length-1].expression.length).fill(`id${parenthesisScopeMap[parenthesisScopeMap.length-1].id}`)
+                    ...Array(parenthesisScopeMap[parenthesisScopeMap.length-1].expression.length).fill([parenthesisScopeMap[parenthesisScopeMap.length-1].id])
                 );
 
                 if (parenthesisScopeMapTemp.length > 0)
                     parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].updateChild(parenthesisScopeMap[parenthesisScopeMap.length-1].id);
             }
-            charList.push(lispLines[index]);
+            charList.push(lispChars[index]);
         } else {
             ++spaceCount;
         }
-        return convertLispToScopeMap(lispLines, index+1, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount);
+        return convertLispToScopeMap(lispChars, index+1, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount);
     }
     return {
         lisp: charList,
@@ -86,10 +94,15 @@ const convertLispToScopeMap = (lispLines, index, charList, parenthesisScopeMapTe
 
 const removeClosuresAndIds = (expression, index, isChild) => {
     if (index < expression.length) {
-        if (expression[index] === "(" || expression[index] === ")")
-            isChild = !isChild;
-        if(isChild) {
-            expression.splice(index, 1);
+        if (expression[index] === "(")
+            isChild = expression[index+1];
+        if (isChild) {
+            if (expression[index] === ")") {
+                expression.splice(index, 1, isChild);
+                isChild = false;
+            } else {
+                expression.splice(index, 1);
+            }
             --index;
         }
         return removeClosuresAndIds(expression, ++index, isChild);
@@ -105,9 +118,16 @@ const clearSourceMapJunks = (scopeMap, index) => {
     return scopeMap;
 }
 
+const createListCharacters = (lispLines, index) => {
+    
+}
+
 export const initLA = (lispLines) => {
     clearSourceMapJunks(
-        convertLispToScopeMap(lispLines, 0, [], [], [], 0).parenthesisScopeMap,
+        convertLispToScopeMap(
+            createListCharacters(lispLines),
+            0, [], [], [], 0
+        ).parenthesisScopeMap,
         0
         ).map(i=>{
         logDebug(JSON.stringify(i))
