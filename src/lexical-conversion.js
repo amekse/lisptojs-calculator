@@ -10,6 +10,7 @@ class NodeDef {
         this.listStartIndex = listStartIndex;
         this.listEndIndex = -1;
         this.children = [];
+        this.expression = [];
     }
 
     getNodeDetails = () => ({
@@ -19,7 +20,9 @@ class NodeDef {
         children: this.children
     });
 
-    addChild = (childId) => this.children.push(childId);
+    updateChild = (childId) => this.children.push(childId);
+
+    updateExpression = (expression) => this.expression = expression;
 
     setListEndIndex = (end) => this.listEndIndex = end;
 }
@@ -43,24 +46,37 @@ const isWhitespace = (char) => {
         || char === '\ufeff'
 }
 
-const convertLispStringToCharList = (lispLines, index, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount) => {
+const convertLispToScopeMap = (lispLines, index, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount) => {
     if(index < lispLines.length) {
         if (!isWhitespace(lispLines[index]) && lispLines[index] !== null) {
             if (lispLines[index] === "(") {
-                const nodeId = `${index-spaceCount}` //`${index-spaceCount}${Date.now()}`;
-                parenthesisScopeMapTemp.push(new NodeDef(nodeId, index - spaceCount));
-                if (parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1])
-                    parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].addChild(nodeId);
+                parenthesisScopeMapTemp.push(new NodeDef(index-spaceCount, index - spaceCount));
             }
             if (lispLines[index] === ")") {
                 parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].setListEndIndex(index - spaceCount);
                 parenthesisScopeMap.push(parenthesisScopeMapTemp.pop());
+                
+                parenthesisScopeMap[parenthesisScopeMap.length-1].updateExpression(
+                    charList.slice(
+                        parenthesisScopeMap[parenthesisScopeMap.length-1].listStartIndex+1,
+                        parenthesisScopeMap[parenthesisScopeMap.length-1].listEndIndex
+                    )
+                );
+
+                charList.splice(
+                    parenthesisScopeMap[parenthesisScopeMap.length-1].listStartIndex+1,
+                    parenthesisScopeMap[parenthesisScopeMap.length-1].expression.length,
+                    ...Array(parenthesisScopeMap[parenthesisScopeMap.length-1].expression.length).fill(`id${parenthesisScopeMap[parenthesisScopeMap.length-1].id}`)
+                );
+
+                if (parenthesisScopeMapTemp.length > 0)
+                    parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].updateChild(parenthesisScopeMap[parenthesisScopeMap.length-1].id);
             }
-            charList.push(lispLines[index] === "(" || lispLines[index] === ")" ? `${index-spaceCount}${lispLines[index]}` : lispLines[index]);
+            charList.push(lispLines[index]);
         } else {
             ++spaceCount;
         }
-        return convertLispStringToCharList(lispLines, index+1, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount);
+        return convertLispToScopeMap(lispLines, index+1, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount);
     }
     return {
         lisp: charList,
@@ -68,8 +84,32 @@ const convertLispStringToCharList = (lispLines, index, charList, parenthesisScop
     };
 };
 
+const removeClosuresAndIds = (expression, index, isChild) => {
+    if (index < expression.length) {
+        if (expression[index] === "(" || expression[index] === ")")
+            isChild = !isChild;
+        if(isChild) {
+            expression.splice(index, 1);
+            --index;
+        }
+        return removeClosuresAndIds(expression, ++index, isChild);
+    }
+    return expression;
+}
+
+const clearSourceMapJunks = (scopeMap, index) => {
+    if(index < scopeMap.length) {
+        scopeMap[index].updateExpression(removeClosuresAndIds(scopeMap[index].expression, 0, false));
+        return clearSourceMapJunks(scopeMap, ++index);
+    }
+    return scopeMap;
+}
+
 export const initLA = (lispLines) => {
-    const tempOut = convertLispStringToCharList(lispLines, 0, [], [], [], 0);
-    logDebug(JSON.stringify(tempOut.lisp));
-    tempOut.parenthesisScopeMap.map(i => logOutput(JSON.stringify(i)))
+    clearSourceMapJunks(
+        convertLispToScopeMap(lispLines, 0, [], [], [], 0).parenthesisScopeMap,
+        0
+        ).map(i=>{
+        logDebug(JSON.stringify(i))
+    })
 }
