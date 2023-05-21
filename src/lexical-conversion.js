@@ -3,6 +3,7 @@
 */
 
 import { logDebug, logOutput } from './utils/logger.js';
+import { initSAOperationCheck, initSAScopeCheck } from './syntax-analysis.js';
 
 class NodeDef {
     constructor (id, listStartIndex) {
@@ -29,7 +30,7 @@ class NodeDef {
 
 const isOperand = (char, charCount = 0, check = true) => {
     if (charCount < char.length) {
-        if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "-"].includes(char[charCount]))
+        if (["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "-", "."].includes(char[charCount]))
             check = check && true;
         else
             check = check && false;
@@ -134,14 +135,18 @@ const detectOperands = (lispLines, index, lispChars) => {
 }
 
 export const initLA = (lispLines) => {
-    logOutput(lispLines)
-    clearSourceMapJunks(
-        convertLispToScopeMap(
-            detectOperands(lispLines, 0, []),
-            0, [], [], [], 0
-        ).parenthesisScopeMap,
-        0
-        ).map(i=>{
-        logDebug(JSON.stringify(i))
-    });
+    if (initSAScopeCheck(lispLines)) {
+        const laOutput = clearSourceMapJunks(
+            convertLispToScopeMap(
+                detectOperands(lispLines, 0, []),
+                0, [], [], [], 0
+            ).parenthesisScopeMap,
+            0
+        );
+        logDebug('**LA Output**');
+        laOutput.map(i=>{
+            logDebug(JSON.stringify(i))
+        });
+        initSAOperationCheck(laOutput);
+    }
 }
