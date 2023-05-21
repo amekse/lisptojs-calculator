@@ -2,7 +2,7 @@
     Developing command tree
 */
 
-import { logDebug } from './utils/logger.js';
+import { logDebug, logOutput } from './utils/logger.js';
 
 class NodeDef {
     constructor (id, listStartIndex) {
@@ -43,27 +43,24 @@ const isWhitespace = (char) => {
         || char === '\ufeff'
 }
 
-
-
-const convertLispStringToCharList = (lispLines, index, charList, parenthesisScopeMap, parenthesisScopeCount, spaceCount) => {
+const convertLispStringToCharList = (lispLines, index, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount) => {
     if(index < lispLines.length) {
         if (!isWhitespace(lispLines[index]) && lispLines[index] !== null) {
             if (lispLines[index] === "(") {
-                const nodeId = `${index-spaceCount}${Date.now()}`;
-                parenthesisScopeMap.push(new NodeDef(nodeId, index - spaceCount));
-                if (parenthesisScopeMap[parenthesisScopeCount])
-                    parenthesisScopeMap[parenthesisScopeCount].addChild(nodeId);
-                ++parenthesisScopeCount;
+                const nodeId = `${index-spaceCount}` //`${index-spaceCount}${Date.now()}`;
+                parenthesisScopeMapTemp.push(new NodeDef(nodeId, index - spaceCount));
+                if (parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1])
+                    parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].addChild(nodeId);
             }
             if (lispLines[index] === ")") {
-                --parenthesisScopeCount;
-                parenthesisScopeMap[parenthesisScopeCount].setListEndIndex(index - spaceCount);
+                parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].setListEndIndex(index - spaceCount);
+                parenthesisScopeMap.push(parenthesisScopeMapTemp.pop());
             }
-            charList.push(lispLines[index]);
+            charList.push(lispLines[index] === "(" || lispLines[index] === ")" ? `${index-spaceCount}${lispLines[index]}` : lispLines[index]);
         } else {
             ++spaceCount;
         }
-        return convertLispStringToCharList(lispLines, index+1, charList, parenthesisScopeMap, parenthesisScopeCount, spaceCount);
+        return convertLispStringToCharList(lispLines, index+1, charList, parenthesisScopeMapTemp, parenthesisScopeMap, spaceCount);
     }
     return {
         lisp: charList,
@@ -71,4 +68,8 @@ const convertLispStringToCharList = (lispLines, index, charList, parenthesisScop
     };
 };
 
-export const initLA = (lispLines) => logDebug("LA output", JSON.stringify(convertLispStringToCharList(lispLines, 0, [], [], 0, 0)));
+export const initLA = (lispLines) => {
+    const tempOut = convertLispStringToCharList(lispLines, 0, [], [], [], 0);
+    logDebug(JSON.stringify(tempOut.lisp));
+    tempOut.parenthesisScopeMap.map(i => logOutput(JSON.stringify(i)))
+}
