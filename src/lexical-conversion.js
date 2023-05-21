@@ -29,6 +29,8 @@ class NodeDef {
     setListEndIndex = (end) => this.listEndIndex = end;
 
     putOutput = (output) => this.output = output;
+
+    updateId = (id) => this.id = id;
 }
 
 const isOperand = (char, charCount = 0, check = true) => {
@@ -65,11 +67,13 @@ const convertLispToScopeMap = (lispChars, index, charList, parenthesisScopeMapTe
     if(index < lispChars.length) {
         if (!isWhitespace(lispChars[index]) && lispChars[index] !== null) {
             if (lispChars[index] === "(") {
-                parenthesisScopeMapTemp.push(new NodeDef(index-spaceCount, index - spaceCount));
+                parenthesisScopeMapTemp.push(new NodeDef(index - spaceCount, index - spaceCount));
             }
             if (lispChars[index] === ")") {
                 parenthesisScopeMapTemp[parenthesisScopeMapTemp.length-1].setListEndIndex(index - spaceCount);
                 parenthesisScopeMap.push(parenthesisScopeMapTemp.pop());
+                
+                parenthesisScopeMap[parenthesisScopeMap.length-1].updateId(parenthesisScopeMap.length-1);
                 
                 parenthesisScopeMap[parenthesisScopeMap.length-1].updateExpression(
                     charList.slice(
@@ -138,6 +142,7 @@ const detectOperands = (lispLines, index, lispChars) => {
 }
 
 export const initLA = (lispLines) => {
+    logDebug('**LA Output**', lispLines);
     if (initSAScopeCheck(lispLines)) {
         const laOutput = clearSourceMapJunks(
             convertLispToScopeMap(

@@ -42,7 +42,7 @@ const checkScopeCompleteness = (lispLines, index, scopeCount = 0) => {
 export const initSAOperationCheck = (abstractTree) =>  {
     if (checkOperatorOperandConfiguration(abstractTree, 0)) {
         logDebug("**SA Output**", true);
-        initST(abstractTree);
+        // initST(abstractTree);
     } else {
         logDebug("**SA Output**", false);
     }
