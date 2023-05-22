@@ -20,6 +20,8 @@ const checkExpression = (expression, index, checkRes = true) => {
     return checkRes;
 }
 
+// TODO: all leaf nodes must be clear of terminals
+
 const checkOperatorOperandConfiguration = (abstractTree, index, checkRes = true) => {
     if (index < abstractTree.length) {
         checkRes = checkRes && checkExpression(abstractTree[index].expression, 0);
