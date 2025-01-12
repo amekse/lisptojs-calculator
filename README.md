@@ -1,8 +1,2 @@
-# kiesta
-LISP compiler on JS
-
-# kiesta 
-LISP compiler on JS
-
-### [v1.0.1]
-- WAP calculator in LISP
+# LISP to JS Compiler
+LISP compiler on JS primarily performing Calculator operations
